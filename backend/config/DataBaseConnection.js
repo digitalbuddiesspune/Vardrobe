@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 export async function connectDB(mongoUri) {
-  const uri = mongoUri || process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/SANSKRUTEE';
+  const uri = mongoUri || process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/VARDROBE';
   console.log('Connecting to MongoDB at:', uri);
   if (!uri) {
     throw new Error('Missing MongoDB connection string');

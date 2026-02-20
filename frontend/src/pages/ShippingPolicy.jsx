@@ -23,7 +23,7 @@ const ShippingPolicy = () => {
           <section>
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Shipping Information</h2>
             <p className="text-gray-700 leading-relaxed">
-              At SANSKRUTEE, we are committed to delivering your orders safely and on time. This Shipping Policy outlines our shipping procedures, delivery times, and shipping charges.
+              At VARDROBE, we are committed to delivering your orders safely and on time. This Shipping Policy outlines our shipping procedures, delivery times, and shipping charges.
             </p>
           </section>
 
@@ -191,9 +191,9 @@ const ShippingPolicy = () => {
               If you have any questions about shipping or need assistance with your order, please contact us:
             </p>
             <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-gray-700"><strong>Email:</strong> shipping@sanskrutee.com</p>
+              <p className="text-gray-700"><strong>Email:</strong> shipping@vardrobe.com</p>
               <p className="text-gray-700"><strong>Phone:</strong> +91-XXXXX-XXXXX</p>
-              <p className="text-gray-700"><strong>Address:</strong> SANSKRUTEE, India</p>
+              <p className="text-gray-700"><strong>Address:</strong> VARDROBE, India</p>
               <p className="text-gray-700 mt-2"><strong>Business Hours:</strong> Monday - Saturday, 9:00 AM - 6:00 PM IST</p>
             </div>
           </section>

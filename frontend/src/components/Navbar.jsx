@@ -2,10 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { searchProducts } from '../services/api';
-import { api } from '../utils/api';
+import logo from '../assets/Logo.png';
 
 const Navbar = () => {
-  const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -17,16 +16,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { cartCount } = useCart();
   const [wishlistCount, setWishlistCount] = useState(0);
-  const [navbarLogo, setNavbarLogo] = useState('https://res.cloudinary.com/dvkxgrcbv/image/upload/v1766485714/Untitled_design_gpc5ty.svg');
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+ 
 
   useEffect(() => {
     const readWishlistCount = () => {
@@ -71,25 +61,14 @@ const Navbar = () => {
     return () => window.removeEventListener('storage', onStorage);
   }, []);
 
-  useEffect(() => {
-    const loadLogo = async () => {
-      try {
-        const data = await api.getLogo();
-        if (data.navbarLogo) {
-          setNavbarLogo(data.navbarLogo);
-        }
-      } catch (err) {
-        console.error('Failed to load navbar logo:', err);
-        // Keep default logo on error
-      }
-    };
-    loadLogo();
-  }, []);
+  
 
   const handleLogout = () => {
     try {
       localStorage.removeItem('auth_token');
-    } catch {}
+    } catch {
+      // ignore
+    }
     setIsAuthenticated(false);
     navigate('/signin');
   };
@@ -130,6 +109,7 @@ const Navbar = () => {
         const data = await searchProducts(q);
         const items = data?.results || [];
         setSearchResults(items);
+      // eslint-disable-next-line no-unused-vars
       } catch (err) {
         setSearchResults([]);
       } finally {
@@ -199,9 +179,9 @@ const Navbar = () => {
           {/* Logo/Brand */}
           <Link to="/" className="flex-shrink-0 z-10">
             <img 
-              src={navbarLogo} 
-              alt="SANSKRUTEE Logo" 
-              className="h-30 sm:h-40 md:h-40 lg:h-50 w-auto object-contain"
+              src={logo} 
+              alt="VARDROBE Logo" 
+              className="h-8 sm:h-9 md:h-10 lg:h-11 w-auto object-contain"
             />
           </Link>
 

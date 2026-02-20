@@ -149,7 +149,7 @@ export default function AddressForm() {
         key,
         amount: order.amount,
         currency: order.currency,
-        name: 'SANSKRUTEE',
+        name: 'VARDROBE',
         description: 'Elegance in Every Drape',
         order_id: order.id,
         prefill: { name: formData.name || '', contact: formData.mobile || '' },

@@ -101,7 +101,7 @@ async function sendOTPviaSMS(mobile, otp) {
     const url = 'https://www.fast2sms.com/dev/bulkV2';
     
     // FAST2SMS expects numbers as a string (comma-separated for multiple)
-    const message = `Your SANSKRUTEE login OTP is ${otp}. Valid for 10 minutes. Do not share this OTP with anyone.`;
+    const message = `Your VARDROBE login OTP is ${otp}. Valid for 10 minutes. Do not share this OTP with anyone.`;
     
     const response = await fetch(url, {
       method: 'POST',

@@ -16,18 +16,6 @@ const categories = [
     path: '/category/tshirts'
   },
   {
-    id: 4,
-    name: 'Shoes',
-    image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1765356722/c8ebeacb5152e0d91ea0158bc3d94f8b_uaalsc.jpg',
-    path: '/category/shoes'
-  },
-  {
-    id:5,
-    name: 'PANTS',
-    image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1765270378/ce7c75f8-2069-4b99-be54-f0fbefda46f3.png',
-    path: '/category/pants'
-  },
-   {
     id: 6,
     name: 'Sunglasses',
     image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1765461889/43753e06bc6de0fcff2745b62424bace_jzwtyc.jpg',

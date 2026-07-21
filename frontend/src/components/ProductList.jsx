@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { FaRupeeSign, FaSpinner, FaFilter, FaTimes, FaHeart, FaRegHeart } from 'react-icons/fa';
+import { FaRupeeSign, FaSpinner, FaFilter, FaTimes, FaHeart, FaRegHeart, FaTrash } from 'react-icons/fa';
 // import { IoEyeOutline } from 'react-icons/io5'; // IoEyeOutline is imported but not used, can be removed if not needed later
 
 // --- IMPORTANT: This line is now the intended data source. Ensure 'fetchSarees' is available. ---
 import { fetchSarees } from '../services/api';
+import { api } from '../utils/api';
 import ProductFilters from './ProductFilters'; 
 // If '../services/api' does not exist, the component will fail to load data.
 
@@ -49,6 +50,7 @@ const ProductList = ({ defaultCategory } = {}) => {
     const [showMobileFilters, setShowMobileFilters] = useState(false);
     const [sortOption, setSortOption] = useState('featured');
     const [wishlist, setWishlist] = useState([]); // Wishlist products 
+    const [deletingProductId, setDeletingProductId] = useState(null);
     
     // Filter states
     const [selectedPriceRange, setSelectedPriceRange] = useState(null);
@@ -143,6 +145,14 @@ const ProductList = ({ defaultCategory } = {}) => {
     // Get raw category from URL to check if it's formal-shirts
     const rawCategory = subCategoryName || categoryName || defaultCategory || '';
     const isFormalShirts = rawCategory.toLowerCase().includes('formal') && rawCategory.toLowerCase().includes('shirt');
+    const isShortsCategory = rawCategory.toLowerCase() === 'shorts';
+    const isAdminUser = (() => {
+        try {
+            return localStorage.getItem('auth_is_admin') === 'true';
+        } catch {
+            return false;
+        }
+    })();
     
     const allPriceRanges = [
       { id: 0, label: '₹99 - ₹200', min: 99, max: 200 },
@@ -372,6 +382,23 @@ const ProductList = ({ defaultCategory } = {}) => {
             window.dispatchEvent(new Event('wishlist:updated')); 
         } catch {}
     }, []);
+
+    const handleDeleteProduct = useCallback(async (product, e) => {
+        e.stopPropagation();
+        if (!product?._id || deletingProductId) return;
+        const ok = window.confirm(`Delete "${product.title}"?`);
+        if (!ok) return;
+
+        try {
+            setDeletingProductId(product._id);
+            await api.admin.deleteProduct(product._id);
+            setProducts((prev) => prev.filter((item) => item._id !== product._id));
+        } catch (err) {
+            alert(err?.message || 'Failed to delete product');
+        } finally {
+            setDeletingProductId(null);
+        }
+    }, [deletingProductId]);
 
     // Helper function to get category/type label for overlay
     const getCategoryLabel = (product) => {
@@ -620,6 +647,18 @@ const ProductList = ({ defaultCategory } = {}) => {
                                                         <FaRegHeart className="text-gray-700 w-3 h-3 md:w-4 md:h-4" />
                                                     )}
                                                 </button>
+
+                                                {/* Admin delete - only on /category/shorts */}
+                                                {isShortsCategory && isAdminUser && (
+                                                    <button
+                                                        onClick={(e) => handleDeleteProduct(p, e)}
+                                                        disabled={deletingProductId === p._id}
+                                                        className="absolute top-2 left-2 md:top-3 md:left-3 bg-white rounded-full p-1 md:p-2 shadow-sm hover:shadow-md transition-all z-10 text-red-600 disabled:opacity-60"
+                                                        title="Delete Product"
+                                                    >
+                                                        <FaTrash className="w-3 h-3 md:w-4 md:h-4" />
+                                                    </button>
+                                                )}
 
                                                 {/* Discount Badge - Bottom Left (if applicable) */}
                                                 {p.discountPercent > 0 && (

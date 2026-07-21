@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import logo from '../assets/Logo.png';
-import { ADDRESS, CIN, GSTIN } from '../constants/companyInfo';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -19,6 +18,8 @@ const Footer = () => {
     { name: 'SHORTS', path: '/category/shorts' },
     { name: 'SHOES', path: '/category/shoes' },
     { name: 'SUNGLASSES', path: '/category/sunglasses' },
+    { name: 'WATCHES', path: '/category/watches' },
+    { name: 'PERFUMES', path: '/category/perfumes' },
   ];
 
   const customerService = [
@@ -185,11 +186,8 @@ const Footer = () => {
           <p className="text-gray-300 text-xs mb-1">
             © {currentYear} <span className="font-semibold text-white">VARDROBE</span>. All rights reserved.
           </p>
-          <p className="text-xs text-gray-400 mb-1">
-            GSTIN: {GSTIN} | CIN: {CIN}
-          </p>
-          <p className="text-xs text-gray-400 mb-2 max-w-3xl mx-auto">
-            {ADDRESS}
+          <p className="text-xs text-gray-400 mb-2">
+            GSTIN: 27ABCDE1234F1Z5 | CIN: U74999MH2020PTC123456
           </p>
           <div className="flex justify-center space-x-4 text-xs text-gray-400">
             <Link to="/privacy" onClick={scrollToTop} className="hover:text-rose-500 transition-colors duration-200">

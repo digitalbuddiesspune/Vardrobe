@@ -145,7 +145,6 @@ const ProductList = ({ defaultCategory } = {}) => {
     // Get raw category from URL to check if it's formal-shirts
     const rawCategory = subCategoryName || categoryName || defaultCategory || '';
     const isFormalShirts = rawCategory.toLowerCase().includes('formal') && rawCategory.toLowerCase().includes('shirt');
-    const isShortsCategory = rawCategory.toLowerCase() === 'shorts';
     const isAdminUser = (() => {
         try {
             return localStorage.getItem('auth_is_admin') === 'true';
@@ -648,8 +647,8 @@ const ProductList = ({ defaultCategory } = {}) => {
                                                     )}
                                                 </button>
 
-                                                {/* Admin delete - only on /category/shorts */}
-                                                {isShortsCategory && isAdminUser && (
+                                                {/* Admin delete icon on category product cards */}
+                                                {isAdminUser && (
                                                     <button
                                                         onClick={(e) => handleDeleteProduct(p, e)}
                                                         disabled={deletingProductId === p._id}

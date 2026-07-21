@@ -22,6 +22,8 @@ const AdminCategories = () => {
   const [error, setError] = useState('');
   const [editing, setEditing] = useState(null);
   const [toast, setToast] = useState(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const loadProducts = async () => {
     try {
@@ -70,6 +72,20 @@ const AdminCategories = () => {
       return matchesCategory && matchesQuery;
     });
   }, [products, query, selectedCategory]);
+
+  const totalPages = Math.max(1, Math.ceil(visibleProducts.length / pageSize));
+  const paginatedProducts = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return visibleProducts.slice(start, start + pageSize);
+  }, [page, pageSize, visibleProducts]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [query, selectedCategory, pageSize]);
+
+  useEffect(() => {
+    setPage((current) => Math.min(current, totalPages));
+  }, [totalPages]);
 
   const showToast = (text, type = 'success') => {
     setToast({ text, type });
@@ -175,15 +191,27 @@ const AdminCategories = () => {
             </h3>
             <p className="text-sm text-gray-500">{visibleProducts.length} products found</p>
           </div>
-          <label className="flex w-full items-center gap-2 rounded-lg border px-3 py-2 sm:max-w-xs">
-            <FiSearch className="text-gray-400" />
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              className="w-full bg-transparent text-sm outline-none"
-              placeholder="Search products"
-            />
-          </label>
+          <div className="flex w-full flex-col gap-2 sm:max-w-md sm:flex-row">
+            <label className="flex flex-1 items-center gap-2 rounded-lg border px-3 py-2">
+              <FiSearch className="text-gray-400" />
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                className="w-full bg-transparent text-sm outline-none"
+                placeholder="Search products"
+              />
+            </label>
+            <select
+              value={pageSize}
+              onChange={(event) => setPageSize(Number(event.target.value))}
+              className="rounded-lg border px-3 py-2 text-sm"
+              aria-label="Products per page"
+            >
+              <option value={5}>5 rows</option>
+              <option value={10}>10 rows</option>
+              <option value={20}>20 rows</option>
+            </select>
+          </div>
         </div>
 
         {loading ? (
@@ -193,7 +221,7 @@ const AdminCategories = () => {
         ) : (
           <>
             <div className="divide-y sm:hidden">
-              {visibleProducts.map((product) => (
+              {paginatedProducts.map((product) => (
                 <div key={product._id} className="flex gap-3 p-4">
                   <img src={product.images?.image1} alt="" className="h-16 w-16 rounded-lg bg-gray-100 object-cover" />
                   <div className="min-w-0 flex-1">
@@ -222,7 +250,7 @@ const AdminCategories = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {visibleProducts.map((product) => (
+                  {paginatedProducts.map((product) => (
                     <tr key={product._id} className="hover:bg-gray-50">
                       <td className="p-3">
                         <div className="flex min-w-[240px] items-center gap-3">
@@ -248,6 +276,29 @@ const AdminCategories = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+            <div className="flex items-center justify-between border-t p-4">
+              <p className="text-sm text-gray-600">
+                Page {page} of {totalPages}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled={page === 1}
+                  onClick={() => setPage((current) => Math.max(1, current - 1))}
+                  className="rounded border px-3 py-1.5 text-sm disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
+                >
+                  Previous
+                </button>
+                <button
+                  type="button"
+                  disabled={page === totalPages}
+                  onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+                  className="rounded border px-3 py-1.5 text-sm disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
+                >
+                  Next
+                </button>
+              </div>
             </div>
           </>
         )}

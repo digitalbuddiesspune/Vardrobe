@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { FiGrid, FiBox, FiShoppingBag, FiLogOut, FiSearch, FiUser, FiHome, FiBookOpen, FiImage, FiSliders } from 'react-icons/fi';
+import { FiGrid, FiBox, FiShoppingBag, FiLogOut, FiSearch, FiUser, FiHome, FiBookOpen, FiImage, FiSliders, FiTag } from 'react-icons/fi';
 
 const Title = () => {
   const { pathname } = useLocation();
   if (pathname === '/admin') return 'Dashboard';
   if (pathname.startsWith('/admin/products')) return 'Products';
+  if (pathname.startsWith('/admin/categories')) return 'Categories';
   if (pathname.startsWith('/admin/orders')) return 'Orders';
   if (pathname.startsWith('/admin/addresses')) return 'Addresses';
   if (pathname.startsWith('/admin/policies')) return 'Policies';
@@ -51,6 +52,7 @@ const AdminLayout = () => {
           <div className="text-lg font-semibold px-2 py-3">Admin</div>
           {navItem('/admin', 'Dashboard', FiGrid)}
           {navItem('/admin/products', 'Products', FiBox)}
+          {navItem('/admin/categories', 'Categories', FiTag)}
           {navItem('/admin/orders', 'Orders', FiShoppingBag)}
           {navItem('/admin/addresses', 'Addresses', FiHome)}
           {navItem('/admin/policies', 'Policies', FiBookOpen)}
@@ -72,6 +74,7 @@ const AdminLayout = () => {
               <div className="text-lg font-semibold px-2 py-3">Admin</div>
               {navItem('/admin', 'Dashboard', FiGrid)}
               {navItem('/admin/products', 'Products', FiBox)}
+              {navItem('/admin/categories', 'Categories', FiTag)}
               {navItem('/admin/orders', 'Orders', FiShoppingBag)}
               {navItem('/admin/addresses', 'Addresses', FiHome)}
               {navItem('/admin/policies', 'Policies', FiBookOpen)}

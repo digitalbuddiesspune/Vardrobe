@@ -22,6 +22,7 @@ import AuthFailure from '../pages/AuthFailure';
 import OrderSuccess from '../pages/OrderSuccess';
 import AdminDashboard from '../pages/admin/AdminDashboard';
 import AdminProducts from '../pages/admin/AdminProducts';
+import AdminCategories from '../pages/admin/AdminCategories';
 import AdminOrders from '../pages/admin/AdminOrders';
 import AdminLayout from '../pages/admin/AdminLayout';
 import AdminAddresses from '../pages/admin/AdminAddresses';
@@ -129,6 +130,7 @@ const Router = () => {
         <Route path="admin" element={<RequireAdmin><AdminLayout /></RequireAdmin>}>
           <Route index element={<AdminDashboard />} />
           <Route path="products" element={<AdminProducts />} />
+          <Route path="categories" element={<AdminCategories />} />
           <Route path="orders" element={<AdminOrders />} />
           <Route path="orders/:id" element={<AdminOrderDetails />} />
           <Route path="addresses" element={<AdminAddresses />} />

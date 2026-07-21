@@ -7,6 +7,7 @@ import CategoryShowcase from '../components/CategoryShowcase';
 import TrendingNow from '../components/TrendingNow';
 import CacheConsent from '../components/CacheConsent';
 import summerShortsBanner from '../assets/summer-shorts-banner.webp';
+import mobileFashionSaleBanner from '../assets/mobile-fashion-sale-banner.webp';
 
 const Home = () => {
   return (
@@ -14,11 +15,14 @@ const Home = () => {
     <div className="min-h-screen pt-0 pb-16 md:pb-0 mt-0 bg-gray-50">
       {/* Summer Shorts Banner - Directly below the navbar */}
       <section className="w-full">
-        <img 
-          src={summerShortsBanner}
-          alt="Modern summer shorts collection"
-          className="block w-full h-auto object-cover"
-        />
+        <picture>
+          <source media="(max-width: 767px)" srcSet={mobileFashionSaleBanner} />
+          <img 
+            src={summerShortsBanner}
+            alt="Fashion sale collection"
+            className="block w-full h-auto object-cover"
+          />
+        </picture>
       </section>
 
       {/* Main Content Area */}

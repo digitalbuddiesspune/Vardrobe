@@ -172,43 +172,7 @@ const SignIn = () => {
             {/* Sign In Form */}
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-neutral-100">
               {/* Login Method Toggle */}
-              <div className="flex gap-2 mb-6 bg-gray-100 p-1 rounded-lg">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setLoginMethod('email');
-                    setError('');
-                    setSuccess('');
-                    setOtpSent(false);
-                    setOtpTimer(0);
-                  }}
-                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
-                    loginMethod === 'email'
-                      ? 'bg-white text-rose-600 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  Email & Password
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setLoginMethod('otp');
-                    setError('');
-                    setSuccess('');
-                    setOtpSent(false);
-                    setOtpTimer(0);
-                  }}
-                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
-                    loginMethod === 'otp'
-                      ? 'bg-white text-rose-600 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  Login with OTP
-                </button>
-              </div>
-
+            
               {error && (<div className="mb-4 text-sm text-red-600 bg-red-50 p-3 rounded-lg">{error}</div>)}
               {success && (<div className="mb-4 text-sm text-green-600 bg-green-50 p-3 rounded-lg">{success}</div>)}
 
@@ -270,13 +234,7 @@ const SignIn = () => {
                 >
                   {loading ? 'Signing In...' : 'Sign In'}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => navigate(location.state?.from?.pathname || '/')}
-                  className="w-full mt-2 border border-neutral-200 text-neutral-700 py-2 rounded-lg font-semibold hover:bg-neutral-50 transition-all duration-300"
-                >
-                  Continue as Guest
-                </button>
+               
               </form>
               )}
 

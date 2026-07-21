@@ -39,8 +39,13 @@ const SignUp = () => {
       const name = `${formData.firstName} ${formData.lastName}`.trim();
       const resp = await api.signup({ name, email: formData.email, password: formData.password });
       setSuccess('Account created successfully');
-      // Do NOT auto-login after signup; redirect to Sign In
-      navigate('/signin', { replace: true });
+      if (resp?.token) localStorage.setItem('auth_token', resp.token);
+      if (resp?.user?.isAdmin) {
+        localStorage.setItem('auth_is_admin', 'true');
+      } else {
+        localStorage.removeItem('auth_is_admin');
+      }
+      navigate('/', { replace: true });
     } catch (err) {
       setError(err.message || 'Failed to sign up');
     } finally {

@@ -16,12 +16,6 @@ const categories = [
     path: '/category/tshirts'
   },
   {
-    id: 3,
-    name: 'PERFUMES',
-    image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1765270303/8ebb88f6-a40e-48a5-a1f3-6b98f254c666.png',
-    path: '/category/perfumes'
-  },
-  {
     id: 4,
     name: 'Shoes',
     image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1765356722/c8ebeacb5152e0d91ea0158bc3d94f8b_uaalsc.jpg',
@@ -38,12 +32,6 @@ const categories = [
     name: 'Sunglasses',
     image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1765461889/43753e06bc6de0fcff2745b62424bace_jzwtyc.jpg',
     path: '/category/sunglasses'
-  },
-   {
-    id: 7,
-    name: 'WATCHES',
-    image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1765270630/e84cc747-7a2e-4a65-ad85-0750fc16b74c.png',
-    path: '/category/watches'
   },
    {
     id: 8,

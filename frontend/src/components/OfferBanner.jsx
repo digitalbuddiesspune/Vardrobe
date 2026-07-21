@@ -2,7 +2,7 @@ import React from 'react';
 
 const OfferBanner = () => {
   // You can customize the offer text here - will scroll horizontally
-  const offerText = "🎉 FLAT 50% OFF ON ALL PERFUMES - LIMITED TIME OFFER! 🚀 FREE SHIPPING ON ORDERS ABOVE ₹999 💎 NEW ARRIVALS: CHECK OUT OUR LATEST COLLECTION";
+  const offerText = "🎉 LIMITED TIME OFFER! 🚀 FREE SHIPPING ON ORDERS ABOVE ₹999 💎 NEW ARRIVALS: CHECK OUT OUR LATEST COLLECTION";
 
   return (
     <div className="bg-black text-white py-1 md:py-1.5 px-4 relative z-[75] overflow-hidden">

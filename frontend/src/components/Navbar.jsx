@@ -161,8 +161,6 @@ const Navbar = () => {
     { name: 'SHORTS', path: '/category/shorts' },
     { name: 'shoes', path: '/category/shoes' },
     { name: 'Sunglasses', path: '/category/sunglasses' },
-    { name: 'Watches', path: '/category/watches' },
-    { name: 'PERFUMES', path: '/category/perfumes' },
   ];
 
   const scrollToTop = () => {

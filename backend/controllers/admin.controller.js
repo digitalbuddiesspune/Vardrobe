@@ -183,7 +183,10 @@ export async function adminListProducts(req, res) {
 export async function deleteProductById(req, res) {
   try {
     const { id } = req.params;
-    await Product.findByIdAndDelete(id);
+    const product = await Product.findByIdAndDelete(id);
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
     return res.json({ message: 'Deleted' });
   } catch (err) {
     return res.status(500).json({ message: 'Failed to delete product', error: err.message });
@@ -279,18 +282,58 @@ export async function adminListAddresses(req, res) {
 export async function updateProduct(req, res) {
   try {
     const { id } = req.params;
-    const { mrp, discountPercent } = req.body;
+    const {
+      title,
+      category,
+      mrp,
+      discountPercent,
+      description,
+      images,
+    } = req.body || {};
 
-    if (typeof mrp === 'undefined' && typeof discountPercent === 'undefined') {
-      return res.status(400).json({ message: 'At least one field (mrp or discountPercent) is required' });
+    if (
+      typeof title === 'undefined' &&
+      typeof category === 'undefined' &&
+      typeof mrp === 'undefined' &&
+      typeof discountPercent === 'undefined' &&
+      typeof description === 'undefined' &&
+      typeof images === 'undefined'
+    ) {
+      return res.status(400).json({ message: 'At least one product field is required' });
     }
 
     const updates = {};
+    if (typeof title !== 'undefined') {
+      const normalizedTitle = String(title).trim();
+      if (!normalizedTitle) return res.status(400).json({ message: 'Title is required' });
+      updates.title = normalizedTitle;
+    }
+    if (typeof category !== 'undefined') {
+      const normalizedCategory = String(category).trim();
+      if (!normalizedCategory) return res.status(400).json({ message: 'Category is required' });
+      updates.category = normalizedCategory;
+    }
     if (typeof mrp !== 'undefined') {
-      updates.mrp = Number(mrp);
+      const normalizedMrp = Number(mrp);
+      if (!Number.isFinite(normalizedMrp) || normalizedMrp <= 0) {
+        return res.status(400).json({ message: 'MRP must be greater than 0' });
+      }
+      updates.mrp = normalizedMrp;
     }
     if (typeof discountPercent !== 'undefined') {
-      updates.discountPercent = Number(discountPercent) || 0;
+      const normalizedDiscount = Number(discountPercent);
+      if (!Number.isFinite(normalizedDiscount) || normalizedDiscount < 0 || normalizedDiscount > 100) {
+        return res.status(400).json({ message: 'Discount must be between 0 and 100' });
+      }
+      updates.discountPercent = normalizedDiscount;
+    }
+    if (typeof description !== 'undefined') {
+      updates.description = String(description);
+    }
+    if (typeof images !== 'undefined') {
+      const image1 = String(images?.image1 || '').trim();
+      if (!image1) return res.status(400).json({ message: 'Primary image is required' });
+      updates['images.image1'] = image1;
     }
 
     const product = await Product.findByIdAndUpdate(

@@ -2,6 +2,11 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { api } from '../../utils/api';
 import { FiEdit, FiTrash2, FiX } from 'react-icons/fi';
 
+const hiddenAdminCategories = new Set(['watch', 'watches', 'perfume', 'perfumes']);
+
+const isVisibleAdminProduct = (product) =>
+  !hiddenAdminCategories.has((product.category || '').trim().toLowerCase());
+
 const AdminProducts = () => {
   const [form, setForm] = useState({
     title: '',
@@ -30,7 +35,7 @@ const AdminProducts = () => {
     try {
       setLoading(true);
       const data = await api.admin.listProducts();
-      setList(data || []);
+      setList((Array.isArray(data) ? data : []).filter(isVisibleAdminProduct));
     } catch (e) {
       setError(e.message || 'Failed to load products');
     } finally {

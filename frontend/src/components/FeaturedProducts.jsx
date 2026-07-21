@@ -214,7 +214,7 @@ const FeaturedProducts = ({ category = 'shirts', layout = 'scroll', maxProducts 
 
   if (loading) {
     return (
-      <section className="py-8 bg-white">
+      <section className="py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-center items-center py-20 text-gray-600">
             <FaSpinner className="w-6 h-6 animate-spin mr-3 text-amber-700" />
@@ -232,14 +232,14 @@ const FeaturedProducts = ({ category = 'shirts', layout = 'scroll', maxProducts 
   // Grid Layout (2 rows)
   if (isGridLayout) {
     return (
-      <section className="py-8 bg-white">
+      <section className="py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Grid Container - 2 rows, responsive columns */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
             {products.map((product) => (
               <div 
                 key={product._id || product.id} 
-                className="group bg-white overflow-hidden flex flex-col cursor-pointer hover:shadow-lg transition-shadow duration-300"
+                className="group overflow-hidden flex flex-col cursor-pointer"
                 onClick={() => {
                   const productId = product._id || product.id;
                   if (productId) {
@@ -303,7 +303,7 @@ const FeaturedProducts = ({ category = 'shirts', layout = 'scroll', maxProducts 
   // Horizontal Scroll Layout (default)
   return (
     // Section matches the main background of the image (usually white)
-    <section className="py-16 bg-white">
+    <section className="py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Left Navigation Arrow */}
         {canScrollLeft && (
@@ -329,10 +329,9 @@ const FeaturedProducts = ({ category = 'shirts', layout = 'scroll', maxProducts 
           onScroll={checkScrollability}
         >
           {products.map((product) => (
-            // Card: No shadow, white background, overflow hidden
             <div 
               key={product._id || product.id} 
-              className="product-card group bg-white overflow-hidden flex flex-col cursor-pointer hover:shadow-lg transition-shadow duration-300 flex-shrink-0 w-[280px] md:w-[300px]"
+              className="product-card group overflow-hidden flex flex-col cursor-pointer flex-shrink-0 w-[280px] md:w-[300px]"
               style={{ scrollSnapAlign: 'start' }}
               onClick={() => {
                 const productId = product._id || product.id;

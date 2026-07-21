@@ -220,62 +220,51 @@ const AdminCategories = () => {
           <div className="p-8 text-center text-gray-500">No products found.</div>
         ) : (
           <>
-            <div className="divide-y sm:hidden">
+            <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
               {paginatedProducts.map((product) => (
-                <div key={product._id} className="flex gap-3 p-4">
-                  <img src={product.images?.image1} alt="" className="h-16 w-16 rounded-lg bg-gray-100 object-cover" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs text-gray-500">{product.category || 'Uncategorized'}</p>
-                    <p className="line-clamp-2 font-medium">{product.title}</p>
-                    <p className="mt-1 text-sm">₹{priceFor(product).toLocaleString('en-IN')}</p>
-                    <div className="mt-2 flex gap-2">
-                      <button onClick={() => openEdit(product)} className="rounded border border-blue-200 px-2 py-1 text-sm text-blue-700">Edit</button>
-                      <button onClick={() => deleteProduct(product)} className="rounded bg-red-600 px-2 py-1 text-sm text-white">Delete</button>
+                <article key={product._id} className="overflow-hidden rounded-xl border bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+                  <img
+                    src={product.images?.image1}
+                    alt={product.title || 'Product'}
+                    className="aspect-square w-full bg-gray-100 object-cover"
+                  />
+                  <div className="space-y-3 p-4">
+                    <div>
+                      <p className="text-xs font-medium uppercase tracking-wide text-blue-700">
+                        {product.category || 'Uncategorized'}
+                      </p>
+                      <h4 className="mt-1 line-clamp-2 min-h-12 font-semibold text-gray-900">
+                        {product.title}
+                      </h4>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-gray-900">
+                        ₹{priceFor(product).toLocaleString('en-IN')}
+                      </span>
+                      <span className="text-sm text-gray-400 line-through">
+                        ₹{Number(product.mrp || 0).toLocaleString('en-IN')}
+                      </span>
+                      <span className="ml-auto rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700">
+                        {product.discountPercent || 0}% off
+                      </span>
+                    </div>
+                    <div className="flex gap-2 border-t pt-3">
+                      <button
+                        onClick={() => openEdit(product)}
+                        className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-blue-200 px-3 py-2 text-sm text-blue-700 hover:bg-blue-50"
+                      >
+                        <FiEdit /> Edit
+                      </button>
+                      <button
+                        onClick={() => deleteProduct(product)}
+                        className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-red-600 px-3 py-2 text-sm text-white hover:bg-red-700"
+                      >
+                        <FiTrash2 /> Delete
+                      </button>
                     </div>
                   </div>
-                </div>
+                </article>
               ))}
-            </div>
-
-            <div className="hidden overflow-x-auto sm:block">
-              <table className="min-w-full text-sm">
-                <thead className="bg-gray-50 text-left text-gray-600">
-                  <tr>
-                    <th className="p-3">Product</th>
-                    <th className="p-3">Category</th>
-                    <th className="p-3">Price</th>
-                    <th className="p-3">MRP</th>
-                    <th className="p-3">Discount</th>
-                    <th className="p-3">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {paginatedProducts.map((product) => (
-                    <tr key={product._id} className="hover:bg-gray-50">
-                      <td className="p-3">
-                        <div className="flex min-w-[240px] items-center gap-3">
-                          <img src={product.images?.image1} alt="" className="h-12 w-12 rounded-lg bg-gray-100 object-cover" />
-                          <span className="max-w-xs truncate font-medium">{product.title}</span>
-                        </div>
-                      </td>
-                      <td className="p-3">{product.category || 'Uncategorized'}</td>
-                      <td className="p-3 whitespace-nowrap">₹{priceFor(product).toLocaleString('en-IN')}</td>
-                      <td className="p-3 whitespace-nowrap">₹{Number(product.mrp || 0).toLocaleString('en-IN')}</td>
-                      <td className="p-3">{product.discountPercent || 0}%</td>
-                      <td className="p-3">
-                        <div className="flex gap-2">
-                          <button onClick={() => openEdit(product)} className="rounded-full p-2 text-blue-700 hover:bg-blue-50" title="Edit product">
-                            <FiEdit />
-                          </button>
-                          <button onClick={() => deleteProduct(product)} className="rounded-full p-2 text-red-600 hover:bg-red-50" title="Delete product">
-                            <FiTrash2 />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             </div>
             <div className="flex items-center justify-between border-t p-4">
               <p className="text-sm text-gray-600">

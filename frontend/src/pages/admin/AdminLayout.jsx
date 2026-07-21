@@ -5,6 +5,7 @@ import { FiGrid, FiBox, FiShoppingBag, FiLogOut, FiSearch, FiUser, FiHome, FiBoo
 const Title = () => {
   const { pathname } = useLocation();
   if (pathname === '/admin') return 'Dashboard';
+  if (pathname === '/admin/products/create') return 'Create Product';
   if (pathname.startsWith('/admin/products')) return 'Products';
   if (pathname.startsWith('/admin/categories')) return 'Categories';
   if (pathname.startsWith('/admin/orders')) return 'Orders';

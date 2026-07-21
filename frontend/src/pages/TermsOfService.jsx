@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
+import ContactInfo from '../components/ContactInfo';
 
 const TermsOfService = () => {
   return (
@@ -168,17 +169,7 @@ const TermsOfService = () => {
             </p>
           </section>
 
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">15. Contact Information</h2>
-            <p className="text-gray-700 leading-relaxed mb-2">
-              If you have any questions about these Terms of Service, please contact us:
-            </p>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-gray-700"><strong>Email:</strong> legal@vardrobe.com</p>
-              <p className="text-gray-700"><strong>Phone:</strong> +91-XXXXX-XXXXX</p>
-              <p className="text-gray-700"><strong>Address:</strong> VARDROBE, India</p>
-            </div>
-          </section>
+          <ContactInfo intro="If you have any questions about these Terms of Service, please contact us:" />
         </div>
       </div>
     </div>

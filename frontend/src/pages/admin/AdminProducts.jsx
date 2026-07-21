@@ -158,20 +158,39 @@ const AdminProducts = () => {
     return Math.round((p.mrp || 0) - (p.mrp || 0) * ((p.discountPercent || 0) / 100));
   };
 
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  const categories = useMemo(() => {
+    const unique = [...new Set(list.map((p) => (p.category || '').trim()).filter(Boolean))];
+    return unique.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+  }, [list]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const arr = q ? list.filter(p => (p.title || '').toLowerCase().includes(q) || (p.category || '').toLowerCase().includes(q)) : list;
-    return arr;
-  }, [list, query]);
+    return list
+      .filter((p) => {
+        const categoryOk =
+          categoryFilter === 'all' ||
+          (p.category || '').toLowerCase() === categoryFilter.toLowerCase();
+        const titleOk = !q || (p.title || '').toLowerCase().includes(q);
+        return categoryOk && titleOk;
+      })
+      .sort((a, b) => {
+        const catCmp = (a.category || '').localeCompare(b.category || '', undefined, { sensitivity: 'base' });
+        if (catCmp !== 0) return catCmp;
+        return (a.title || '').localeCompare(b.title || '', undefined, { sensitivity: 'base' });
+      });
+  }, [list, categoryFilter, query]);
+
   const totalPages = Math.max(1, Math.ceil((filtered.length || 0) / pageSize));
   const pageItems = useMemo(() => {
     const start = (page - 1) * pageSize;
     return filtered.slice(start, start + pageSize);
   }, [filtered, page, pageSize]);
-  useEffect(() => { setPage(1); }, [query, pageSize]);
+  useEffect(() => { setPage(1); }, [categoryFilter, query, pageSize]);
 
   return (
     <div className="max-w-7xl mx-auto p-4">
@@ -206,15 +225,38 @@ const AdminProducts = () => {
         <div className="bg-white border rounded-xl shadow-sm ring-1 ring-rose-50 md:h-[calc(100vh-8rem)] md:flex md:flex-col md:overflow-y-auto md:col-span-7">
           <div className="px-4 py-3 border-b font-semibold">Products</div>
           <div className="p-4 md:flex md:flex-col md:h-full">
-            <div className="md:sticky md:top-0 md:z-10 md:bg-white pb-3 pt-1 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between md:border-b">
-              <input value={query} onChange={(e)=>setQuery(e.target.value)} placeholder="Search by title or category" className="w-full sm:max-w-xs border rounded px-3 py-2" />
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Rows</span>
-                <select className="border rounded px-2 py-1" value={pageSize} onChange={(e)=>setPageSize(Number(e.target.value))}>
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                  <option value={20}>20</option>
+            <div className="md:sticky md:top-0 md:z-10 md:bg-white pb-3 pt-1 flex flex-col gap-3 md:border-b">
+              <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+                <select
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className="w-full sm:max-w-[200px] border rounded px-3 py-2"
+                >
+                  <option value="all">All categories</option>
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
                 </select>
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={categoryFilter === 'all' ? 'Search by product name' : `Search in ${categoryFilter}`}
+                  className="w-full sm:flex-1 border rounded px-3 py-2"
+                />
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm text-gray-600">
+                  {filtered.length} product{filtered.length !== 1 ? 's' : ''}
+                  {categoryFilter !== 'all' ? ` in ${categoryFilter}` : ''}
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">Rows</span>
+                  <select className="border rounded px-2 py-1" value={pageSize} onChange={(e)=>setPageSize(Number(e.target.value))}>
+                    <option value={5}>5</option>
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                  </select>
+                </div>
               </div>
             </div>
             <div>
@@ -247,6 +289,7 @@ const AdminProducts = () => {
                   <thead className="bg-rose-50/60 text-rose-700">
                     <tr className="text-left border-b border-rose-100">
                       <th className="p-2">Image</th>
+                      <th className="p-2 hidden lg:table-cell">Category</th>
                       <th className="p-2">Title</th>
                       <th className="p-2 whitespace-nowrap">Price</th>
                       <th className="p-2 hidden md:table-cell whitespace-nowrap">MRP</th>
@@ -258,6 +301,7 @@ const AdminProducts = () => {
                     {pageItems.map((p) => (
                       <tr key={p._id} className="border-b hover:bg-rose-50/40">
                         <td className="p-2"><img src={p?.images?.image1} alt="" className="w-12 h-12 object-cover rounded" /></td>
+                        <td className="p-2 hidden lg:table-cell text-gray-600 whitespace-nowrap">{p.category || '—'}</td>
                         <td className="p-2 max-w-[320px]"><div className="truncate">{p.title}</div></td>
                         <td className="p-2 whitespace-nowrap">₹{priceFor(p).toLocaleString('en-IN')}</td>
                         <td className="p-2 hidden md:table-cell whitespace-nowrap">₹{(p.mrp || 0).toLocaleString('en-IN')}</td>

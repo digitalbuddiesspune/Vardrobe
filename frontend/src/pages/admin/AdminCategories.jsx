@@ -22,8 +22,6 @@ const AdminCategories = () => {
   const [error, setError] = useState('');
   const [editing, setEditing] = useState(null);
   const [toast, setToast] = useState(null);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
 
   const loadProducts = async () => {
     try {
@@ -72,20 +70,6 @@ const AdminCategories = () => {
       return matchesCategory && matchesQuery;
     });
   }, [products, query, selectedCategory]);
-
-  const totalPages = Math.max(1, Math.ceil(visibleProducts.length / pageSize));
-  const paginatedProducts = useMemo(() => {
-    const start = (page - 1) * pageSize;
-    return visibleProducts.slice(start, start + pageSize);
-  }, [page, pageSize, visibleProducts]);
-
-  useEffect(() => {
-    setPage(1);
-  }, [query, selectedCategory, pageSize]);
-
-  useEffect(() => {
-    setPage((current) => Math.min(current, totalPages));
-  }, [totalPages]);
 
   const showToast = (text, type = 'success') => {
     setToast({ text, type });
@@ -191,7 +175,7 @@ const AdminCategories = () => {
             </h3>
             <p className="text-sm text-gray-500">{visibleProducts.length} products found</p>
           </div>
-          <div className="flex w-full flex-col gap-2 sm:max-w-md sm:flex-row">
+          <div className="w-full sm:max-w-xs">
             <label className="flex flex-1 items-center gap-2 rounded-lg border px-3 py-2">
               <FiSearch className="text-gray-400" />
               <input
@@ -201,16 +185,6 @@ const AdminCategories = () => {
                 placeholder="Search products"
               />
             </label>
-            <select
-              value={pageSize}
-              onChange={(event) => setPageSize(Number(event.target.value))}
-              className="rounded-lg border px-3 py-2 text-sm"
-              aria-label="Products per page"
-            >
-              <option value={5}>5 rows</option>
-              <option value={10}>10 rows</option>
-              <option value={20}>20 rows</option>
-            </select>
           </div>
         </div>
 
@@ -221,7 +195,7 @@ const AdminCategories = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-              {paginatedProducts.map((product) => (
+              {visibleProducts.map((product) => (
                 <article key={product._id} className="overflow-hidden rounded-xl border bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
                   <img
                     src={product.images?.image1}
@@ -265,29 +239,6 @@ const AdminCategories = () => {
                   </div>
                 </article>
               ))}
-            </div>
-            <div className="flex items-center justify-between border-t p-4">
-              <p className="text-sm text-gray-600">
-                Page {page} of {totalPages}
-              </p>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  disabled={page === 1}
-                  onClick={() => setPage((current) => Math.max(1, current - 1))}
-                  className="rounded border px-3 py-1.5 text-sm disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
-                >
-                  Previous
-                </button>
-                <button
-                  type="button"
-                  disabled={page === totalPages}
-                  onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-                  className="rounded border px-3 py-1.5 text-sm disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
-                >
-                  Next
-                </button>
-              </div>
             </div>
           </>
         )}

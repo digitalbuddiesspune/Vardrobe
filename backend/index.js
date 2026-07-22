@@ -30,7 +30,9 @@ console.log(
 console.log(
   'MSG91 env loaded:',
   Boolean(process.env.MSG91_AUTH_KEY),
-  Boolean(process.env.MSG91_TEMPLATE_ID)
+  Boolean(process.env.MSG91_TEMPLATE_ID),
+  'template=',
+  process.env.MSG91_TEMPLATE_ID || '(none)'
 );
 
 const server = express();

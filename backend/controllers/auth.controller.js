@@ -159,6 +159,7 @@ export async function sendOTP(req, res) {
     return res.json({
       message: 'OTP sent successfully to your mobile number',
       mobile: normalizedMobile,
+      templateId: process.env.MSG91_TEMPLATE_ID || null,
     });
   } catch (err) {
     console.error('Send OTP error:', err?.message || err);

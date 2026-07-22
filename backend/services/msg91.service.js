@@ -12,8 +12,8 @@ function getUrls() {
 }
 
 function requireConfig() {
-  const authKey = process.env.MSG91_AUTH_KEY || '';
-  const templateId = process.env.MSG91_TEMPLATE_ID || '';
+  const authKey = (process.env.MSG91_AUTH_KEY || '').trim();
+  const templateId = (process.env.MSG91_TEMPLATE_ID || '').trim();
   if (!authKey) {
     throw new Error('MSG91_AUTH_KEY is not configured');
   }
@@ -23,8 +23,9 @@ function requireConfig() {
   return {
     authKey,
     templateId,
-    senderId: process.env.MSG91_SENDER_ID || '',
+    senderId: (process.env.MSG91_SENDER_ID || '').trim(),
     useSender: process.env.MSG91_USE_SENDER === 'true',
+    brandName: (process.env.MSG91_BRAND_NAME || 'VARDROBE').trim(),
   };
 }
 
@@ -44,36 +45,50 @@ export function normalizeMobile(mobile) {
 }
 
 /**
- * Send OTP via MSG91 v5 API
- * Docs: https://docs.msg91.com/otp
+ * Send OTP via MSG91 v5 — template_id MUST be in query string.
+ * Also put template_id in JSON body as a safeguard.
  */
 export async function sendOtp(mobile) {
-  const { authKey, templateId, senderId, useSender } = requireConfig();
+  const { authKey, templateId, senderId, useSender, brandName } = requireConfig();
   const msgMobile = toMsg91Mobile(mobile);
   const { send: sendUrl } = getUrls();
 
-  const payload = {
+  const params = new URLSearchParams({
     template_id: templateId,
     mobile: msgMobile,
-    otp_length: 6,
-  };
+    otp_length: '6',
+    otp_expiry: '5',
+  });
   if (useSender && senderId) {
-    payload.sender = senderId;
+    params.set('sender', senderId);
   }
 
-  const res = await fetch(sendUrl, {
+  // Body also carries template_id (some MSG91 setups read it from body)
+  const body = {
+    template_id: templateId,
+    mobile: msgMobile,
+  };
+  if (useSender && senderId) {
+    body.sender = senderId;
+  }
+
+  const url = `${sendUrl}?${params.toString()}`;
+
+  console.log('[MSG91] SEND using template_id=', templateId, 'mobile=', msgMobile, 'sender=', senderId || '-');
+
+  const res = await fetch(url, {
     method: 'POST',
     headers: {
       authkey: authKey,
       'Content-Type': 'application/json',
+      Accept: 'application/json',
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(body),
   });
 
   const data = await res.json().catch(() => ({}));
-  if (process.env.MSG91_DEBUG === 'true') {
-    console.log('[MSG91] send OTP →', sendUrl, JSON.stringify(data));
-  }
+  console.log('[MSG91] SEND response:', JSON.stringify(data));
+
   const ok =
     res.ok &&
     (data.type === 'success' ||
@@ -88,12 +103,10 @@ export async function sendOtp(mobile) {
     success: true,
     requestId: data.request_id || data.requestId || null,
     message: data.message || 'OTP sent successfully',
+    templateId,
   };
 }
 
-/**
- * Verify OTP via MSG91 v5 API
- */
 export async function verifyOtp(mobile, otp) {
   const { authKey } = requireConfig();
   const msgMobile = toMsg91Mobile(mobile);
@@ -106,9 +119,8 @@ export async function verifyOtp(mobile, otp) {
   });
 
   const data = await res.json().catch(() => ({}));
-  if (process.env.MSG91_DEBUG === 'true') {
-    console.log('[MSG91] verify OTP →', verifyUrl, JSON.stringify(data));
-  }
+  console.log('[MSG91] VERIFY response:', JSON.stringify(data));
+
   const ok =
     data.type === 'success' ||
     String(data.message || '').toLowerCase().includes('verified');
@@ -121,37 +133,9 @@ export async function verifyOtp(mobile, otp) {
 }
 
 /**
- * Resend OTP via MSG91 v5 retry API
+ * Always do a fresh SEND (not MSG91 retry).
+ * Retry reuses the previous OTP session/template — can keep sending AAKDA text.
  */
-export async function retryOtp(mobile, retryType = 'text') {
-  const { authKey } = requireConfig();
-  const msgMobile = toMsg91Mobile(mobile);
-  const { retry: retryUrl } = getUrls();
-
-  const res = await fetch(retryUrl, {
-    method: 'POST',
-    headers: {
-      authkey: authKey,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      mobile: msgMobile,
-      retrytype: retryType,
-    }),
-  });
-
-  const data = await res.json().catch(() => ({}));
-  if (process.env.MSG91_DEBUG === 'true') {
-    console.log('[MSG91] retry OTP →', retryUrl, JSON.stringify(data));
-  }
-  const ok =
-    res.ok &&
-    (data.type === 'success' ||
-      String(data.message || '').toLowerCase().includes('otp'));
-
-  if (!ok) {
-    throw new Error(data.message || 'Failed to resend OTP');
-  }
-
-  return { success: true, message: data.message || 'OTP resent successfully' };
+export async function retryOtp(mobile) {
+  return sendOtp(mobile);
 }

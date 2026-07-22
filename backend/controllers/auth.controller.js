@@ -1,28 +1,57 @@
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import User from '../models/User.js';
-import OTP from '../models/OTP.js';
+import {
+  sendOtp as msg91SendOtp,
+  verifyOtp as msg91VerifyOtp,
+  retryOtp as msg91RetryOtp,
+  isValidIndianMobile,
+  normalizeMobile,
+} from '../services/msg91.service.js';
 
 function generateJwt(userId) {
   const jwtSecret = process.env.JWT_SECRET || 'dev_secret_change_me';
   return jwt.sign({ userId }, jwtSecret, { expiresIn: '7d' });
 }
 
+function userPayload(user) {
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email || null,
+    phone: user.phone || null,
+    isAdmin: !!user.isAdmin,
+  };
+}
+
 export async function signup(req, res) {
   try {
-    const { name, email, password } = req.body;
-    if (!name || !email || !password) return res.status(400).json({ message: 'Missing fields' });
+    const { name, email, password, phone } = req.body;
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: 'Missing fields' });
+    }
 
     const existing = await User.findOne({ email });
     if (existing) return res.status(409).json({ message: 'Email already registered' });
 
+    if (phone) {
+      const mobile = normalizeMobile(phone);
+      const phoneTaken = await User.findOne({ phone: mobile });
+      if (phoneTaken) return res.status(409).json({ message: 'Phone number already registered' });
+    }
+
     const passwordHash = await User.hashPassword(password);
-    const user = await User.create({ name, email, passwordHash });
+    const user = await User.create({
+      name,
+      email,
+      passwordHash,
+      ...(phone ? { phone: normalizeMobile(phone) } : {}),
+    });
 
     const token = generateJwt(user.id);
     return res.status(201).json({
       message: 'Account created',
-      user: { id: user.id, name: user.name, email: user.email, isAdmin: !!user.isAdmin },
+      user: userPayload(user),
       token,
     });
   } catch (err) {
@@ -42,7 +71,7 @@ export async function signin(req, res) {
     const token = generateJwt(user.id);
     return res.json({
       message: 'Signed in',
-      user: { id: user.id, name: user.name, email: user.email, isAdmin: !!user.isAdmin },
+      user: userPayload(user),
       token,
     });
   } catch (err) {
@@ -58,12 +87,11 @@ export async function forgotPassword(req, res) {
     if (!user) return res.status(200).json({ message: 'If account exists, email sent' });
 
     const token = crypto.randomBytes(32).toString('hex');
-    const expires = new Date(Date.now() + 1000 * 60 * 30); // 30 min
+    const expires = new Date(Date.now() + 1000 * 60 * 30);
     user.resetPasswordToken = token;
     user.resetPasswordExpiresAt = expires;
     await user.save();
 
-    // Normally send email with link containing token; for now, return token
     return res.json({ message: 'Reset token generated', token });
   } catch (err) {
     return res.status(500).json({ message: 'Forgot password failed', error: err.message });
@@ -89,170 +117,158 @@ export async function resetPassword(req, res) {
   }
 }
 
-// Generate 6-digit OTP
-function generateOTP() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-}
-
-// Send OTP via FAST2SMS
-async function sendOTPviaSMS(mobile, otp) {
-  try {
-    const FAST2SMS_API_KEY = process.env.FAST2SMS_API_KEY || '1wFebuyq627952JQjs2c1Q4hafm8Ss5yGkxY44jX9uJbHXVGkimYiLoEmy2q';
-    const url = 'https://www.fast2sms.com/dev/bulkV2';
-    
-    // FAST2SMS expects numbers as a string (comma-separated for multiple)
-    const message = `Your VARDROBE login OTP is ${otp}. Valid for 10 minutes. Do not share this OTP with anyone.`;
-    
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'authorization': FAST2SMS_API_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        route: 'q',
-        message: message,
-        language: 'english',
-        flash: 0,
-        numbers: mobile
-      })
-    });
-
-    const data = await response.json();
-    // FAST2SMS returns success if return is true
-    if (data.return === true) {
-      return true;
-    }
-    
-    // Alternative: Try OTP route
-    const otpResponse = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'authorization': FAST2SMS_API_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        route: 'otp',
-        variables_values: otp,
-        numbers: mobile
-      })
-    });
-    
-    const otpData = await otpResponse.json();
-    return otpData.return === true;
-  } catch (error) {
-    console.error('Error sending OTP:', error);
-    return false;
-  }
-}
-
-// Send OTP to mobile number
+/** Send OTP via MSG91 (signin / signup) */
 export async function sendOTP(req, res) {
   try {
-    const { mobile } = req.body;
+    const { mobile, purpose = 'signin', email } = req.body;
     if (!mobile) {
       return res.status(400).json({ message: 'Mobile number is required' });
     }
 
-    // Validate mobile number (10 digits)
-    const mobileRegex = /^[6-9]\d{9}$/;
-    if (!mobileRegex.test(mobile)) {
-      return res.status(400).json({ message: 'Invalid mobile number. Please enter a valid 10-digit mobile number.' });
+    const normalizedMobile = normalizeMobile(mobile);
+    if (!isValidIndianMobile(normalizedMobile)) {
+      return res.status(400).json({
+        message: 'Invalid mobile number. Please enter a valid 10-digit mobile number.',
+      });
     }
 
-    // Generate OTP
-    const otp = generateOTP();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    if (purpose === 'signup') {
+      if (email) {
+        const emailExists = await User.findOne({ email: String(email).toLowerCase().trim() });
+        if (emailExists) {
+          return res.status(409).json({ message: 'Email already registered' });
+        }
+      }
+      const phoneExists = await User.findOne({ phone: normalizedMobile });
+      if (phoneExists) {
+        return res.status(409).json({ message: 'Phone number already registered' });
+      }
+    }
 
-    // Delete any existing OTP for this mobile
-    await OTP.deleteMany({ mobile });
-
-    // Save OTP
-    await OTP.create({
-      mobile,
-      otp,
-      expiresAt
-    });
-
-    // Send OTP via SMS
-    const sent = await sendOTPviaSMS(mobile, otp);
-    
-    if (!sent) {
-      // In development, return OTP for testing
-      if (process.env.NODE_ENV === 'development') {
-        return res.json({ 
-          message: 'OTP sent (dev mode)', 
-          otp: otp // Only in development
+    if (purpose === 'signin') {
+      const user = await User.findOne({ phone: normalizedMobile });
+      if (!user) {
+        return res.status(404).json({
+          message: 'No account found with this number. Please sign up first.',
         });
       }
-      return res.status(500).json({ message: 'Failed to send OTP. Please try again.' });
     }
 
-    return res.json({ message: 'OTP sent successfully to your mobile number' });
+    await msg91SendOtp(normalizedMobile);
+
+    return res.json({
+      message: 'OTP sent successfully to your mobile number',
+      mobile: normalizedMobile,
+    });
   } catch (err) {
-    console.error('Send OTP error:', err);
-    return res.status(500).json({ message: 'Failed to send OTP', error: err.message });
+    console.error('Send OTP error:', err?.message || err);
+    return res.status(500).json({
+      message: err?.message || 'Failed to send OTP. Please try again.',
+    });
   }
 }
 
-// Verify OTP and login/signup
+/** Resend OTP via MSG91 */
+export async function resendOTP(req, res) {
+  try {
+    const { mobile } = req.body;
+    if (!mobile) return res.status(400).json({ message: 'Mobile number is required' });
+
+    const normalizedMobile = normalizeMobile(mobile);
+    if (!isValidIndianMobile(normalizedMobile)) {
+      return res.status(400).json({ message: 'Invalid mobile number' });
+    }
+
+    await msg91RetryOtp(normalizedMobile);
+    return res.json({ message: 'OTP resent successfully' });
+  } catch (err) {
+    console.error('Resend OTP error:', err?.message || err);
+    return res.status(500).json({ message: err?.message || 'Failed to resend OTP' });
+  }
+}
+
+/** Verify MSG91 OTP — signin or signup */
 export async function verifyOTP(req, res) {
   try {
-    const { mobile, otp } = req.body;
-    
+    const { mobile, otp, purpose = 'signin', name, email, password } = req.body;
+
     if (!mobile || !otp) {
       return res.status(400).json({ message: 'Mobile number and OTP are required' });
     }
 
-    // Find valid OTP
-    const otpRecord = await OTP.findOne({
-      mobile,
-      otp,
-      expiresAt: { $gt: new Date() },
-      verified: false
-    });
-
-    if (!otpRecord) {
-      return res.status(400).json({ message: 'Invalid or expired OTP' });
+    const normalizedMobile = normalizeMobile(mobile);
+    if (!isValidIndianMobile(normalizedMobile)) {
+      return res.status(400).json({ message: 'Invalid mobile number' });
     }
 
-    // Mark OTP as verified
-    otpRecord.verified = true;
-    await otpRecord.save();
+    const verified = await msg91VerifyOtp(normalizedMobile, String(otp).trim());
+    if (!verified.success) {
+      return res.status(400).json({ message: verified.message || 'Invalid or expired OTP' });
+    }
 
-    // Find or create user
-    let user = await User.findOne({ phone: mobile });
-    
-    if (!user) {
-      // Create new user with default name based on mobile number
-      const defaultName = `User ${mobile.slice(-4)}`;
-      user = await User.create({
-        name: defaultName,
-        phone: mobile,
-        provider: 'local'
+    let user = await User.findOne({ phone: normalizedMobile });
+
+    if (purpose === 'signup') {
+      if (!name || !email || !password) {
+        return res.status(400).json({ message: 'Name, email and password are required for signup' });
+      }
+
+      const emailNorm = String(email).toLowerCase().trim();
+      const emailExists = await User.findOne({ email: emailNorm });
+      if (emailExists && emailExists.phone !== normalizedMobile) {
+        return res.status(409).json({ message: 'Email already registered' });
+      }
+
+      const passwordHash = await User.hashPassword(password);
+
+      if (user) {
+        user.name = name;
+        user.email = emailNorm;
+        user.passwordHash = passwordHash;
+        await user.save();
+      } else {
+        user = await User.create({
+          name,
+          email: emailNorm,
+          phone: normalizedMobile,
+          passwordHash,
+          provider: 'local',
+        });
+      }
+
+      const token = generateJwt(user.id);
+      return res.status(201).json({
+        message: 'Account created successfully',
+        user: userPayload(user),
+        token,
       });
     }
 
-    // Generate JWT token
+    // signin
+    if (!user) {
+      return res.status(404).json({
+        message: 'No account found with this number. Please sign up first.',
+      });
+    }
+
     const token = generateJwt(user.id);
-    
     return res.json({
       message: 'Login successful',
-      user: { 
-        id: user.id, 
-        name: user.name, 
-        email: user.email || null, 
-        phone: user.phone,
-        isAdmin: !!user.isAdmin 
-      },
-      token
+      user: userPayload(user),
+      token,
     });
   } catch (err) {
-    console.error('Verify OTP error:', err);
+    console.error('Verify OTP error:', err?.message || err);
     return res.status(500).json({ message: 'Failed to verify OTP', error: err.message });
   }
 }
 
-export default { signup, signin, forgotPassword, resetPassword, sendOTP, verifyOTP };
-
-
+export default {
+  signup,
+  signin,
+  forgotPassword,
+  resetPassword,
+  sendOTP,
+  resendOTP,
+  verifyOTP,
+};

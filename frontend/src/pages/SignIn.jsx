@@ -74,7 +74,7 @@ const SignIn = () => {
 
     setSendingOTP(true);
     try {
-      const resp = await api.sendOTP({ mobile: otpData.mobile });
+      const resp = await api.sendOTP({ mobile: otpData.mobile, purpose: 'signin' });
       setSuccess(resp.message || 'OTP sent successfully');
       setOtpSent(true);
       
@@ -106,6 +106,7 @@ const SignIn = () => {
       const resp = await api.verifyOTP({
         mobile: otpData.mobile,
         otp: otpData.otp,
+        purpose: 'signin',
       });
       
       // Store token and redirect
@@ -172,6 +173,38 @@ const SignIn = () => {
             {/* Sign In Form */}
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-neutral-100">
               {/* Login Method Toggle */}
+              <div className="flex rounded-lg border border-neutral-200 p-1 mb-5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginMethod('email');
+                    setError('');
+                    setSuccess('');
+                  }}
+                  className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
+                    loginMethod === 'email'
+                      ? 'bg-rose-500 text-white shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Email
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginMethod('otp');
+                    setError('');
+                    setSuccess('');
+                  }}
+                  className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
+                    loginMethod === 'otp'
+                      ? 'bg-rose-500 text-white shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  OTP
+                </button>
+              </div>
             
               {error && (<div className="mb-4 text-sm text-red-600 bg-red-50 p-3 rounded-lg">{error}</div>)}
               {success && (<div className="mb-4 text-sm text-green-600 bg-green-50 p-3 rounded-lg">{success}</div>)}
@@ -316,7 +349,19 @@ const SignIn = () => {
                         {otpTimer === 0 && otpSent && (
                           <button
                             type="button"
-                            onClick={handleSendOTP}
+                            onClick={async () => {
+                              setSendingOTP(true);
+                              setError('');
+                              try {
+                                const resp = await api.resendOTP({ mobile: otpData.mobile });
+                                setSuccess(resp.message || 'OTP resent');
+                                setOtpTimer(600);
+                              } catch (err) {
+                                setError(err.message || 'Failed to resend OTP');
+                              } finally {
+                                setSendingOTP(false);
+                              }
+                            }}
                             className="mt-2 text-xs text-rose-500 hover:text-rose-600 font-medium"
                           >
                             Resend OTP

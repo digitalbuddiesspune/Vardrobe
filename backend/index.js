@@ -27,6 +27,11 @@ console.log(
   Boolean(process.env.AIRPAY_PASSWORD),
   Boolean(process.env.AIRPAY_SECRET)
 );
+console.log(
+  'MSG91 env loaded:',
+  Boolean(process.env.MSG91_AUTH_KEY),
+  Boolean(process.env.MSG91_TEMPLATE_ID)
+);
 
 const server = express();
 

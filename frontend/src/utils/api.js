@@ -32,6 +32,7 @@ export const api = {
   signup: (payload) => request('/auth/signup', { method: 'POST', body: JSON.stringify(payload) }),
   forgotPassword: (payload) => request('/auth/forgot-password', { method: 'POST', body: JSON.stringify(payload) }),
   sendOTP: (payload) => request('/auth/send-otp', { method: 'POST', body: JSON.stringify(payload) }),
+  resendOTP: (payload) => request('/auth/resend-otp', { method: 'POST', body: JSON.stringify(payload) }),
   verifyOTP: (payload) => request('/auth/verify-otp', { method: 'POST', body: JSON.stringify(payload) }),
   me: async () => {
     try {

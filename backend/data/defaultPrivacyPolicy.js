@@ -94,8 +94,8 @@ export const defaultPrivacyPolicy = {
 <section>
 <h2>10. Contact Us</h2>
 <p>If you have any questions about this Privacy Policy, please contact us:</p>
-<p><strong>Email:</strong> support@vardrobe.in, kavyanshenterprisespl@outlook.com</p>
-<p><strong>Phone:</strong> +91 8851489813</p>
+<p><strong>Email:</strong> support@vardrobe.in, kavyanshentreprises@gmail.com</p>
+<p><strong>Phone:</strong> +91 9355618308</p>
 <p><strong>Company Name:</strong> KAVYANSH ENTREPRISES PRIVATE LIMITED</p>
 <p><strong>GSTIN:</strong> 07AAKCK9401A1ZT</p>
 <p><strong>CIN:</strong> U47912UP2024PTC200410</p>

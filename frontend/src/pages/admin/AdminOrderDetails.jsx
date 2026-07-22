@@ -83,12 +83,12 @@ const AdminOrderDetails = () => {
 
   const normalizedPaymentMethod = useMemo(() => {
     if (!order) return '';
-    return (order.paymentMethod || (order.razorpayPaymentId ? 'razorpay' : 'cod')).toUpperCase();
+    return (order.paymentMethod || (order.airpayOrderId ? 'airpay' : order.razorpayPaymentId ? 'razorpay' : 'cod')).toUpperCase();
   }, [order]);
 
   const paymentStatus = useMemo(() => order?.paymentStatus || (order?.status === 'failed' ? 'failed' : order?.status === 'paid' ? 'paid' : 'pending'), [order]);
   const orderStatus = useMemo(() => order?.orderStatus || order?.status || 'pending', [order]);
-  const transactionId = order?.transactionId || order?.razorpayPaymentId || order?.razorpayOrderId || '—';
+  const transactionId = order?.transactionId || order?.airpayTransactionId || order?.razorpayPaymentId || order?.razorpayOrderId || order?.airpayOrderId || '—';
 
   const subtotal = useMemo(() => {
     if (!order?.items) return 0;

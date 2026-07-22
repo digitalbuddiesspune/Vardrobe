@@ -6,7 +6,7 @@ import Settings from '../models/Settings.js';
 
 const ORDER_STATUS_ALLOWED = new Set(['pending','confirmed','packed','shipped','delivered','cancelled','returned','created','on_the_way']);
 const PAYMENT_STATUS_ALLOWED = new Set(['paid','pending','failed','refunded']);
-const PAYMENT_METHOD_ALLOWED = new Set(['razorpay','cod','card','upi']);
+const PAYMENT_METHOD_ALLOWED = new Set(['razorpay','airpay','cod','card','upi']);
 
 const mapLegacyStatusToOrderStatus = (status = '') => {
   const s = String(status).toLowerCase();
@@ -28,7 +28,7 @@ const normalizeOrder = (orderDoc) => {
   const o = orderDoc?.toObject ? orderDoc.toObject() : { ...(orderDoc || {}) };
   const orderStatus = o.orderStatus || mapLegacyStatusToOrderStatus(o.status);
   const paymentStatus = o.paymentStatus || mapLegacyStatusToPaymentStatus(o.status);
-  const paymentMethod = o.paymentMethod || (o.razorpayPaymentId ? 'razorpay' : 'cod');
+  const paymentMethod = o.paymentMethod || (o.airpayOrderId ? 'airpay' : o.razorpayPaymentId ? 'razorpay' : 'cod');
   const transactionId = o.transactionId || o.razorpayPaymentId || o.razorpayOrderId || '';
 
   return {

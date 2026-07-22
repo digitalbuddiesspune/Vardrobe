@@ -55,7 +55,7 @@ const OrderSchema = new mongoose.Schema(
     },
     paymentMethod: { 
       type: String, 
-      enum: ['razorpay', 'cod', 'card', 'upi'], 
+      enum: ['razorpay', 'airpay', 'cod', 'card', 'upi'], 
       default: 'cod' 
     },
     transactionId: { type: String },
@@ -71,6 +71,8 @@ const OrderSchema = new mongoose.Schema(
     razorpayOrderId: { type: String },
     razorpayPaymentId: { type: String },
     razorpaySignature: { type: String },
+    airpayOrderId: { type: String, index: true },
+    airpayTransactionId: { type: String },
     shippingAddress: { type: ShippingAddressSchema },
   },
   { timestamps: true }

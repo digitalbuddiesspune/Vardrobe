@@ -21,9 +21,11 @@ import cookieJwtAuth from './middleware/authMiddleware.js';
 configDotenv();
 
 console.log(
-  'Razorpay env loaded:',
-  Boolean(process.env.RAZORPAY_KEY_ID),
-  Boolean(process.env.RAZORPAY_KEY_SECRET)
+  'Airpay V3 env loaded:',
+  Boolean(process.env.AIRPAY_MERCHANT_ID),
+  Boolean(process.env.AIRPAY_USERNAME),
+  Boolean(process.env.AIRPAY_PASSWORD),
+  Boolean(process.env.AIRPAY_SECRET)
 );
 
 const server = express();

@@ -39,6 +39,12 @@ export default function AddressForm() {
   }, []);
 
   useEffect(() => {
+    return () => {
+      if (upiPollRef.current) clearInterval(upiPollRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
     if (searchTerm) {
       setFilteredStates(
         indianStates.filter(state =>
@@ -67,6 +73,9 @@ export default function AddressForm() {
   const [showForm, setShowForm] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState('online'); // 'online' or 'cod'
   const [processingOrder, setProcessingOrder] = useState(false);
+  const [upiPayment, setUpiPayment] = useState(null); // { orderid, qrcode_string, amount, ap_transactionid }
+  const [upiStatus, setUpiStatus] = useState(''); // waiting | checking | failed
+  const upiPollRef = useRef(null);
   const { cart, cartTotal: total, loadCart } = useCart();
 
   // Calculate price details
@@ -91,6 +100,63 @@ export default function AddressForm() {
   };
 
   const priceDetails = calculatePriceDetails();
+
+  const stopUpiPolling = () => {
+    if (upiPollRef.current) {
+      clearInterval(upiPollRef.current);
+      upiPollRef.current = null;
+    }
+  };
+
+  const closeUpiModal = () => {
+    stopUpiPolling();
+    setUpiPayment(null);
+    setUpiStatus('');
+    setProcessingOrder(false);
+  };
+
+  const startUpiPolling = (payment) => {
+    stopUpiPolling();
+    setUpiStatus('waiting');
+
+    const tick = async () => {
+      try {
+        setUpiStatus('checking');
+        const r = await verifyPayment({
+          orderid: payment.orderid,
+          ap_transactionid: payment.ap_transactionid,
+        });
+
+        if (r?.success) {
+          stopUpiPolling();
+          setUpiStatus('');
+          setUpiPayment(null);
+          setProcessingOrder(false);
+          await loadCart();
+          navigate('/order/success', {
+            state: {
+              orderId: r.order?._id || r.order?.id,
+              orderNumber: r.order?.orderNumber || payment.orderid,
+            },
+          });
+          return;
+        }
+
+        if (r?.pending) {
+          setUpiStatus('waiting');
+          return;
+        }
+
+        setUpiStatus('waiting');
+      } catch (e) {
+        console.error('UPI verify poll error:', e);
+        setUpiStatus('waiting');
+      }
+    };
+
+    tick();
+    upiPollRef.current = setInterval(tick, 4000);
+  };
 
   const handlePayment = async () => {
     if (!hasSavedAddress) {
@@ -129,47 +195,24 @@ export default function AddressForm() {
         return;
       }
 
-      // Handle Online Payment (Razorpay)
-      if (!window.Razorpay) {
-        await new Promise((resolve, reject) => {
-          const s = document.createElement('script');
-          s.src = 'https://checkout.razorpay.com/v1/checkout.js';
-          s.onload = resolve;
-          s.onerror = reject;
-          document.body.appendChild(s);
-        });
-      }
+      // Online payment — Airpay V3 UPI QR
+      setProcessingOrder(true);
       const amount = priceDetails.total;
-      const { order, key } = await createPaymentOrder(amount, {
+      const payment = await createPaymentOrder(amount, {
         name: formData.name,
         mobile: formData.mobile,
         city: formData.city,
+        email: formData.email,
       });
-      const options = {
-        key,
-        amount: order.amount,
-        currency: order.currency,
-        name: 'VARDROBE',
-        description: 'Elegance in Every Drape',
-        order_id: order.id,
-        prefill: { name: formData.name || '', contact: formData.mobile || '' },
-        theme: { color: '#000000' },
-        handler: async function (response) {
-          try {
-            const r = await verifyPayment(response);
-            if (r && r.success) {
-              await loadCart();
-              navigate('/profile?tab=orders');
-            } else {
-              alert('Payment verification failed');
-            }
-          } catch (e) {
-            alert('Payment verification failed');
-          }
-        },
-      };
-      const rzp = new window.Razorpay(options);
-      rzp.open();
+
+      if (!payment?.qrcode_string || !payment?.orderid) {
+        setProcessingOrder(false);
+        alert(payment?.error || 'Unable to generate UPI QR. Please try again.');
+        return;
+      }
+
+      setUpiPayment(payment);
+      startUpiPolling(payment);
     } catch (e) {
       setProcessingOrder(false);
       const errorMessage = e?.message || e?.error || 'Unable to process payment. Please try again.';
@@ -382,7 +425,46 @@ export default function AddressForm() {
   return (
     <div className="min-h-screen bg-gray-50 p-4 relative">
       {/* Loading Overlay */}
-      {processingOrder && (
+      {upiPayment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full text-center">
+            <h3 className="text-xl font-semibold text-gray-900 mb-1">Scan to Pay</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              Amount: <span className="font-semibold text-gray-900">₹{Number(upiPayment.amount).toLocaleString()}</span>
+            </p>
+            <div className="flex justify-center mb-4">
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(upiPayment.qrcode_string)}`}
+                alt="UPI QR Code"
+                className="w-[260px] h-[260px] border border-gray-100 rounded-lg"
+              />
+            </div>
+            <p className="text-xs text-gray-500 mb-2 break-all">Order: {upiPayment.orderid}</p>
+            <p className="text-sm text-gray-700 mb-4">
+              {upiStatus === 'checking'
+                ? 'Checking payment status…'
+                : 'Open any UPI app and scan this QR to complete payment.'}
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={closeUpiModal}
+                className="flex-1 py-2.5 px-4 rounded-md border border-gray-300 text-gray-800 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <a
+                href={upiPayment.qrcode_string}
+                className="flex-1 py-2.5 px-4 rounded-md bg-black text-white hover:bg-gray-800 text-center"
+              >
+                Open UPI App
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {processingOrder && !upiPayment && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
           <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 text-center">
             <div className="mb-6 flex justify-center">
@@ -391,12 +473,12 @@ export default function AddressForm() {
               </div>
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              {paymentMethod === 'cod' ? 'Placing Your Order...' : 'Processing Payment...'}
+              {paymentMethod === 'cod' ? 'Placing Your Order...' : 'Generating UPI QR...'}
             </h3>
             <p className="text-gray-600 text-sm">
               {paymentMethod === 'cod' 
                 ? 'Please wait while we process your order. This may take a few seconds.'
-                : 'Please wait while we process your payment.'}
+                : 'Please wait while we prepare your secure UPI payment.'}
             </p>
             <div className="mt-6 flex items-center justify-center gap-2">
               <div className="w-2 h-2 bg-black rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
@@ -772,8 +854,8 @@ export default function AddressForm() {
                     className="w-4 h-4 text-black focus:ring-black"
                   />
                   <div className="flex-1">
-                    <span className="text-sm font-medium text-gray-900">Online Payment</span>
-                    <p className="text-xs text-gray-500">Pay securely with Razorpay</p>
+                    <span className="text-sm font-medium text-gray-900">Online Payment (UPI)</span>
+                    <p className="text-xs text-gray-500">Pay securely via Airpay UPI QR</p>
                   </div>
                 </label>
                 <label className="flex items-center gap-3 p-3 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50 transition-colors">

@@ -220,8 +220,9 @@ export const createPaymentOrder = async (amount, notes = {}) => {
     body: JSON.stringify({ amount, currency: 'INR', notes }),
     credentials: 'include',
   });
-  if (!res.ok) throw new Error('Failed to create payment order');
-  return res.json();
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || data.message || 'Failed to create payment order');
+  return data;
 };
 
 export const verifyPayment = async (payload) => {
@@ -231,8 +232,9 @@ export const verifyPayment = async (payload) => {
     body: JSON.stringify(payload),
     credentials: 'include',
   });
-  if (!res.ok) throw new Error('Failed to verify payment');
-  return res.json();
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || data.message || 'Failed to verify payment');
+  return data;
 };
 
 export const createCODOrder = async () => {

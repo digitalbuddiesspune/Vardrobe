@@ -16,6 +16,18 @@ const categories = [
     path: '/category/tshirts'
   },
   {
+    id: 3,
+    name: 'PANTS',
+    image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1765783173/019aee8cedb1960264cd85da53651c5c_wpgnjy.jpg',
+    path: '/category/pants'
+  },
+  {
+    id: 4,
+    name: 'SHOES',
+    image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1765450961/df3fb8167324adc6dbdacd2023efeaac_xksgiz.jpg',
+    path: '/category/shoes'
+  },
+  {
     id: 6,
     name: 'Sunglasses',
     image: 'https://res.cloudinary.com/dvkxgrcbv/image/upload/v1765461889/43753e06bc6de0fcff2745b62424bace_jzwtyc.jpg',
@@ -37,7 +49,7 @@ const CategoryShowcase = () => {
           CATEGORIES
         </h2>
 
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-x-3 sm:gap-x-4 gap-y-6 sm:gap-y-10">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-x-3 sm:gap-x-4 gap-y-6 sm:gap-y-10">
           {categories.map((category) => (
             <div key={category.id} className="group flex flex-col items-center text-center">
               <Link

@@ -18,8 +18,6 @@ const Footer = () => {
     { name: 'SHORTS', path: '/category/shorts' },
     { name: 'SHOES', path: '/category/shoes' },
     { name: 'SUNGLASSES', path: '/category/sunglasses' },
-    { name: 'WATCHES', path: '/category/watches' },
-    { name: 'PERFUMES', path: '/category/perfumes' },
   ];
 
   const customerService = [
